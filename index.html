@@ -1,0 +1,50 @@
+<html>
+<head>
+    <title>seminal</title>
+    <script src="/static/jquery.js"></script>
+    <link rel="stylesheet" href="/static/jquery.dataTables.css" />
+    <script src="/static/jquery.dataTables.js"></script>
+    <style>
+        body{font-family: Helvetica,Arial, sans-serif;}
+        img{width:40vw;}
+        .status{height:20px;}
+        textarea{outline: none; border: 1px solid black;text-align: left;width:50px;  resize:vertical;height:150px}
+        .img{width:300px;}
+        .meta{width:200px;text-align:left}
+        h2::selection{background: white;}
+        .hider {visibility:hidden;}
+        .shower {visibility:visible;}
+        .terminal{
+            background:black;
+            color:green;
+            white-space:pre-wrap;
+            font-family: 'Courier New', Courier, monospace;
+            
+        }
+
+    </style>
+</head>
+<body>
+    <h1>seminal</h1>
+    <div id="dater"></div>
+    <script>
+        const regex = /<td>([^<]*.jpg)<\/td>/gi;
+
+        options = {        
+            paging: [30],
+            order: [[0, 'desc']]
+
+        }
+        $.get("/sems",(data)=>{
+            var replacement = '<td><a href="/measure$1" ><img src="$1"></a></td>';
+            var data = data.replace(regex, replacement);
+            //data = data.replaceAll('href="/drops','href="/measure').replaceAll('.jpg" ><img','" ><img')
+            $("#dater").html(data); 
+            $('#data').DataTable(options);
+        })
+
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="/static/jquery.js"></script>
+	<style>
+		canvas {
+			border: 1px solid black;
+			margin: 10px;
+		}
+	</style>
+</head>
+<body>
+	<canvas id="canvas" width="600" height="400"></canvas>
+	<script>
+		// Load the image file and draw it on the canvas
+		var canvas = document.getElementById('canvas');
+		var ctx = canvas.getContext('2d');
+		var img = new Image(); // Declare img globally
+        img.src = window.location.href.replace("/measure","/")
+        document.title = window.location.pathname.split("/").slice(-1)[0].replace(".jpg","")
+        var xfactor = 1;
+        var yfactor = 1;
+        var unit = "";
+        $.get(img.src.replace(".jpg",".json"),
+            (json)=>{
+                xfactor = json['FeiImage']['pixelHeight']['#text']
+                yfactor = json['FeiImage']['pixelHeight']['#text']
+                unit = json['FeiImage']['pixelHeight']['@unit']
+            })
+
+				img.onload = function(){ // Use globally declared img variable
+					resizeCanvas();
+					ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+				}
+				//img.src = event.target.result;
+		// Define the Line object
+		function Line(x1, y1, x2, y2) {
+			this.x1 = x1;
+			this.y1 = y1;
+			this.x2 = x2;
+			this.y2 = y2;
+		}
+
+		// Initialize the list of lines
+		var lines = [];
+
+		// Add an event listener for mouse clicks on the canvas
+		canvas.addEventListener('mousedown', function(event) {
+			// If the user clicked on an existing line, set it as the active line
+			for (var i = 0; i < lines.length; i++) {
+				var line = lines[i];
+				var dist = distance(event.offsetX, event.offsetY, line.x1, line.y1, line.x2, line.y2);
+				if (dist < 5) {
+					activeLine = line;
+					return;
+				}
+			}
+
+			// Otherwise, start a new line
+			var x = event.offsetX;
+			var y = event.offsetY;
+			var line = new Line(x, y, x, y);
+
+			lines.push(line);
+			activeLine = line;
+		});
+
+		// Add an event listener for mouse moves on the canvas
+		canvas.addEventListener('mousemove', function(event) {
+			if (activeLine) {
+				activeLine.x2 = event.offsetX;
+				activeLine.y2 = event.offsetY;
+				drawLines();
+			}
+		});
+
+		// Add an event listener for mouse releases on the canvas
+		canvas.addEventListener('mouseup', function(event) {
+			activeLine = null;
+		});
+
+		// Calculate the distance between a point and a line
+		function distance(x1, y1, x2, y2) {
+            var a = x1 - x2;
+            var b = y1 - y2;
+            var c = Math.sqrt( a*a + b*b );
+
+			return c;
+		}
+
+		// Draw all the lines on the canvas
+        function drawLines() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                for (var i = 0; i < lines.length; i++) {
+                    var line = lines[i];
+                    var x1 = line.x1;
+                    var y1 = line.y1;
+                    var x2 = line.x2;
+                    var y2 = line.y2;
+
+                    // Draw the line
+                    ctx.beginPath();
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(x2, y2);
+                    ctx.strokeStyle = 'red';
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                    rat = img.width/canvas.width
+
+                    // Calculate the distance in pixels and display it as text centered on the line
+                    var dist = distance(x2,y2,x1, y1, x2, y2);
+                    dist = dist*xfactor*rat
+                    tu = unit;
+                    if (dist > 1000)
+                    {
+                        dist = dist/1000
+                        tu = "µm"
+                    }
+
+
+                    var centerX = (x1 + x2) / 2;
+                    var centerY = (y1 + y2) / 2;
+                    ctx.fillStyle = 'black';
+                    ctx.font = 'bold 16px Arial';
+                    ctx.textAlign = 'center';
+                    mytext = dist.toFixed(2) + ` ${tu}`
+                    var vvw = ctx.measureText(mytext).width*1.2; /// width in pixels
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                    vvh = 25
+                    ctx.fillRect(centerX-vvw/2, centerY-vvh/1.5, vvw, vvh);
+                    ctx.fillStyle = 'black';
+                    ctx.font = 'bold 16px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(mytext, centerX, centerY);
+
+                }
+        }       
+
+        function resizeCanvas() {
+                canvas.width = window.innerWidth - 20;
+                canvas.height = window.innerHeight - 120;
+
+                // Get the ratio of the canvas to the image
+                var ratio = Math.min(canvas.width / img.width, canvas.height / img.height);
+
+                // Calculate the new width and height of the image based on the ratio
+                var newWidth = Math.floor(img.width * ratio);
+                var newHeight = Math.floor(img.height * ratio);
+
+                // Set the canvas size to the new width and height
+                canvas.width = newWidth;
+                canvas.height = newHeight;
+
+                // Calculate the position to center the image on the canvas
+                var x = (canvas.width - newWidth) / 2;
+                var y = (canvas.height - newHeight) / 2;
+
+                // Draw the image on the canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                // Update the line coordinates based on the new canvas size
+                for (var i = 0; i < lines.length; i++) {
+                    var line = lines[i];
+                    line.x1 *= ratio;
+                    line.y1 *= ratio;
+                    line.x2 *= ratio;
+                    line.y2 *= ratio;
+                }
+}
+
+
+
+
+
+		// Set the active line to null when the user presses the Escape key
+		document.addEventListener('keydown', function(event) {
+			if (event.key === 'Escape') {
+				activeLine = null;
+			}
+		});
+
+
+        window.onresize = resizeCanvas;
+
+		// Start with no active line
+		var activeLine = null;
+	</script>
+</body>
+</html>

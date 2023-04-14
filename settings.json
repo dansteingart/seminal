@@ -1,0 +1,5 @@
+{
+    "directory_base" : "/path/to/files",
+    "http_port" : 8080
+
+}
