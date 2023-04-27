@@ -5,16 +5,22 @@
 	<style>
 		
         body {margin:0;padding:0;background: black};
-        canvas {    padding-left: 0;
-            padding-right: 0;
-    margin-left: auto;
-    margin-right: auto;
-    display: block;
-};
+        .center {
+            margin: 0px auto;
+           text-align: center;
+
+
+        }
+
+        canvas {    
+            margin-left: auto;
+            margin-right: auto;
+            display: block;
+        };
 	</style>
 </head>
 <body>
-	<canvas id="canvas"></canvas>
+    <div id="cont" class="center"><canvas id="canvas"></canvas></div>
 	<script>
 		// Load the image file and draw it on the canvas
 		var canvas = document.getElementById('canvas');
@@ -142,8 +148,8 @@
         }       
 
         function resizeCanvas() {
-                canvas.width = window.innerWidth - 20;
-                canvas.height = window.innerHeight - 120;
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
 
                 // Get the ratio of the canvas to the image
                 var ratio = Math.min(canvas.width / img.width, canvas.height / img.height);
@@ -180,9 +186,7 @@
 
 		// Set the active line to null when the user presses the Escape key
 		document.addEventListener('keydown', function(event) {
-			if (event.key === 'Escape') {
-				activeLine = null;
-			}
+			if (event.key === 'Escape') { activeLine = null; }
 		});
 
 

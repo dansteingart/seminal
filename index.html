@@ -35,7 +35,7 @@
         const regex = /<td>([^<]*.jpg)<\/td>/gi;
         options = { paging: [30], order: [[0, 'desc']]}
         $.get("/sems",(data)=>{
-            var replacement = '<td><a href="/measure$1" ><img src="$1"></a></td>';
+            var replacement = '<td><a href="/measure$1" ><img loading="lazy" src="$1"></a></td>';
             var data = data.replace(regex, replacement);
             $("#dater").html(data); 
             $('#data').DataTable(options);
